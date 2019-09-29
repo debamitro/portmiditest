@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 
 // Based on portmidi/pm_test/test.c
 
@@ -48,7 +49,7 @@ void doit ()
 
     std::getchar ();
 
-    PmEvent buffer[10];
+    PmEvent buffer[200];
 
     buffer[0].timestamp = TIME_PROC(TIME_INFO);
     buffer[0].message = Pm_Message(0xC0, 0, 0);
@@ -57,31 +58,54 @@ void doit ()
     std::cout << "Press enter to send notes\n";
     std::getchar ();
 
-    buffer[0].timestamp = TIME_PROC(TIME_INFO);
-    buffer[0].message = Pm_Message(0x90, 60, 100);
+    std::vector <int> events = {57,60,62,64,65,64,62,60,
+                                57,60,62,64,65,64,62,60,
+                                57,60,62,64,65,64,62,60,
+                                57,60,62,64,65,64,62,60,
+                                62,64,65,64,62,60,
+                                62,64,65,64,62,60,
+                                62,64,65,64,62,60,
+                                62,64,65,64,62,60,
+                                62,64,65,64,62,60,62,60};
 
-    buffer[1].timestamp = TIME_PROC(TIME_INFO) + 100;
-    buffer[1].message = Pm_Message(0x90, 60, 0);
+    int messageItr = 0;
+    int duration = 35;
+    int eventItr = 0;
+    for (auto event : events)
+    {
+        int strength = 70;
 
-    buffer[2].timestamp = TIME_PROC(TIME_INFO) + 100;
-    buffer[2].message = Pm_Message(0x90, 58, 100);
+        if (eventItr == 8 ||
+            eventItr == 16 ||
+            eventItr == 24 ||
+            eventItr == 32 ||
+            eventItr == 38 ||
+            eventItr == 44 ||
+            eventItr == 50 ||
+            eventItr == 56)
+        {
+            strength = 100;
+        }
 
-    buffer[3].timestamp = TIME_PROC(TIME_INFO) + 200;
-    buffer[3].message = Pm_Message(0x90, 58, 0);
+        buffer[messageItr].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
+        buffer[messageItr].message = Pm_Message (0x90, event + 2, strength);
 
-    buffer[4].timestamp = TIME_PROC(TIME_INFO) + 200;
-    buffer[4].message = Pm_Message(0x90, 57, 100);
+        buffer[messageItr+1].timestamp = TIME_PROC(TIME_INFO) + (messageItr + 1) * duration;
+        buffer[messageItr+1].message = Pm_Message (0x90, event + 2, 0);
 
-    buffer[5].timestamp = TIME_PROC(TIME_INFO) + 300;
-    buffer[5].message = Pm_Message(0x90, 57, 0);
+        messageItr += 2;
+        ++eventItr;
+    }
 
-    buffer[6].timestamp = TIME_PROC(TIME_INFO) + 300;
-    buffer[6].message = Pm_Message(0x90, 58, 100);
+    Pm_Write(midi, buffer, messageItr);
 
-    buffer[7].timestamp = TIME_PROC(TIME_INFO) + 2000;
-    buffer[7].message = Pm_Message(0x90, 58, 0);
+    buffer[0].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
+    buffer[0].message = Pm_Message (0x90, 60, 100);
 
-    Pm_Write(midi, buffer, 8);
+    buffer[1].timestamp = TIME_PROC(TIME_INFO) + (messageItr * duration) + 1000;
+    buffer[1].message = Pm_Message (0x90, 60, 0);
+
+    Pm_Write(midi, buffer, 2);
 
     std::cout << "Press enter to quit\n";
     std::getchar ();
