@@ -58,15 +58,25 @@ void doit ()
     std::cout << "Press enter to send notes\n";
     std::getchar ();
 
-    std::vector <int> events = {57,60,62,64,65,64,62,60,
-                                57,60,62,64,65,64,62,60,
-                                57,60,62,64,65,64,62,60,
-                                57,60,62,64,65,64,62,60,
-                                62,64,65,64,62,60,
-                                62,64,65,64,62,60,
-                                62,64,65,64,62,60,
-                                62,64,65,64,62,60,
-                                62,64,65,64,62,60,62,60};
+    const int sa = 60;
+    const int _ni = sa - 1;
+    const int re = sa + 2;
+    const int ga = sa + 4;
+    const int Ma = sa + 6;
+    const int pa = sa + 7;
+    const int dha = pa + 2;
+    const int ni = pa + 4;
+    const int sa_ = pa + 5;
+
+    std::vector <int> events = {_ni,re,ga,Ma,pa,Ma,ga,re,
+                                _ni,re,ga,Ma,pa,Ma,ga,re,
+                                _ni,re,ga,Ma,pa,Ma,ga,re,
+                                _ni,re,ga,Ma,pa,Ma,ga,re,
+                                ga,Ma,pa,Ma,ga,re,
+                                ga,Ma,pa,Ma,ga,re,
+                                ga,Ma,pa,Ma,ga,re,
+                                ga,Ma,pa,Ma,ga,re,
+                                ga,Ma,pa,Ma,pa,Ma,ga,re};
 
     int messageItr = 0;
     int duration = 35;
@@ -88,10 +98,10 @@ void doit ()
         }
 
         buffer[messageItr].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
-        buffer[messageItr].message = Pm_Message (0x90, event + 2, strength);
+        buffer[messageItr].message = Pm_Message (0x90, event, strength);
 
         buffer[messageItr+1].timestamp = TIME_PROC(TIME_INFO) + (messageItr + 1) * duration;
-        buffer[messageItr+1].message = Pm_Message (0x90, event + 2, 0);
+        buffer[messageItr+1].message = Pm_Message (0x90, event, 0);
 
         messageItr += 2;
         ++eventItr;
@@ -100,10 +110,10 @@ void doit ()
     Pm_Write(midi, buffer, messageItr);
 
     buffer[0].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
-    buffer[0].message = Pm_Message (0x90, 60, 100);
+    buffer[0].message = Pm_Message (0x90, sa, 100);
 
     buffer[1].timestamp = TIME_PROC(TIME_INFO) + (messageItr * duration) + 1000;
-    buffer[1].message = Pm_Message (0x90, 60, 0);
+    buffer[1].message = Pm_Message (0x90, sa, 0);
 
     Pm_Write(midi, buffer, 2);
 
