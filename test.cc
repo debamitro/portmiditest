@@ -1,6 +1,8 @@
 #include "portmidi.h"
 #include "porttime.h"
 
+#include "MusicEvent.hh"
+
 #include <iostream>
 #include <cstdlib>
 #include <vector>
@@ -58,29 +60,22 @@ void doit ()
     std::cout << "Press enter to send notes\n";
     std::getchar ();
 
-    const int sa = 60;
-    const int _ni = sa - 1;
-    const int re = sa + 2;
-    const int ga = sa + 4;
-    const int Ma = sa + 6;
-    const int pa = sa + 7;
-    const int dha = pa + 2;
-    const int ni = pa + 4;
-    const int sa_ = pa + 5;
-
-    std::vector <int> events = {_ni,re,ga,Ma,pa,Ma,ga,re,
-                                _ni,re,ga,Ma,pa,Ma,ga,re,
-                                _ni,re,ga,Ma,pa,Ma,ga,re,
-                                _ni,re,ga,Ma,pa,Ma,ga,re,
-                                ga,Ma,pa,Ma,ga,re,
-                                ga,Ma,pa,Ma,ga,re,
-                                ga,Ma,pa,Ma,ga,re,
-                                ga,Ma,pa,Ma,ga,re,
-                                ga,Ma,pa,Ma,pa,Ma,ga,re};
+    std::vector <MusicEvent> events = {
+        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Ga(),Ma2(),Pa(),Ma2(),Pa(),Ma2(),Ga(),Re(),
+        Sa(1000)
+    };
 
     int messageItr = 0;
-    int duration = 35;
     int eventItr = 0;
+    int currentTime = TIME_PROC(TIME_INFO);
     for (auto event : events)
     {
         int strength = 70;
@@ -97,25 +92,19 @@ void doit ()
             strength = 100;
         }
 
-        buffer[messageItr].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
-        buffer[messageItr].message = Pm_Message (0x90, event, strength);
+        buffer[messageItr].timestamp = currentTime;
+        buffer[messageItr].message = Pm_Message (0x90, event.note(), strength);
 
-        buffer[messageItr+1].timestamp = TIME_PROC(TIME_INFO) + (messageItr + 1) * duration;
-        buffer[messageItr+1].message = Pm_Message (0x90, event, 0);
+        currentTime += event.durationInMs();
+
+        buffer[messageItr+1].timestamp = currentTime;
+        buffer[messageItr+1].message = Pm_Message (0x90, event.note(), 0);
 
         messageItr += 2;
         ++eventItr;
     }
 
     Pm_Write(midi, buffer, messageItr);
-
-    buffer[0].timestamp = TIME_PROC(TIME_INFO) + messageItr * duration;
-    buffer[0].message = Pm_Message (0x90, sa, 100);
-
-    buffer[1].timestamp = TIME_PROC(TIME_INFO) + (messageItr * duration) + 1000;
-    buffer[1].message = Pm_Message (0x90, sa, 0);
-
-    Pm_Write(midi, buffer, 2);
 
     std::cout << "Press enter to quit\n";
     std::getchar ();
