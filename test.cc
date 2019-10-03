@@ -9,6 +9,8 @@
 
 // Based on portmidi/pm_test/test.c
 
+extern std::vector<MusicEvent> get_composition ();
+
 void doit ()
 {
     Pm_Initialize ();
@@ -60,40 +62,12 @@ void doit ()
     std::cout << "Press enter to send notes\n";
     std::getchar ();
 
-    std::vector <MusicEvent> events = {
-        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        _Ni(),Re(),Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Ga(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Ga(),Ma2(),Pa(),Ma2(),Pa(),Ma2(),Ga(),Re(),
-        Sa(1000)
-    };
-
     int messageItr = 0;
-    int eventItr = 0;
     int currentTime = TIME_PROC(TIME_INFO);
-    for (auto event : events)
+    for (auto event : get_composition ())
     {
-        int strength = 70;
-
-        if (eventItr == 8 ||
-            eventItr == 16 ||
-            eventItr == 24 ||
-            eventItr == 32 ||
-            eventItr == 38 ||
-            eventItr == 44 ||
-            eventItr == 50 ||
-            eventItr == 56)
-        {
-            strength = 100;
-        }
-
         buffer[messageItr].timestamp = currentTime;
-        buffer[messageItr].message = Pm_Message (0x90, event.note(), strength);
+        buffer[messageItr].message = Pm_Message (0x90, event.note(), event.strength());
 
         currentTime += event.durationInMs();
 
@@ -101,7 +75,6 @@ void doit ()
         buffer[messageItr+1].message = Pm_Message (0x90, event.note(), 0);
 
         messageItr += 2;
-        ++eventItr;
     }
 
     Pm_Write(midi, buffer, messageItr);
